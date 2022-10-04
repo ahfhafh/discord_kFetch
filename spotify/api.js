@@ -1,9 +1,8 @@
 /* eslint-disable no-param-reassign */
 /* eslint-disable arrow-body-style */
 // eslint-disable-next-line no-unused-vars
-const dotenv = require('dotenv').config();
-const fetch = require('node-fetch');
-const logger = require('../exceptions/logger');
+require('dotenv').config({ path: '../.env' });
+const axios = require('axios');
 
 class API {
 	static getURI(endpoint) {
@@ -11,7 +10,7 @@ class API {
 	}
 
 	static handleError(err) {
-		logger.log(err, 'API');
+		console.log(err, 'API');
 	}
 
 	static encodeJson(data) {
@@ -23,7 +22,7 @@ class API {
 			.join('&');
 	}
 
-	static request(endpoint, opts, callback) {
+	static request(endpoint, opts) {
 		let url;
 
 		if (endpoint.includes('http')) {
@@ -32,7 +31,13 @@ class API {
 			url = API.getURI(endpoint);
 		}
 
-		return fetch(url, opts).then(callback).catch(API.handleError);
+		return axios({ url: url, ...opts }).then(resp => {
+			if (resp.status === 200) {
+				return resp;
+			} else {
+				console.log('Err: ' + resp.status);
+			}
+		}).catch(API.handleError);
 	}
 
 	static withForm(method) {
@@ -40,17 +45,12 @@ class API {
 			endpoint,
 			token = null,
 			body,
-			callback,
 			json = true,
 		}) {
-			if (!json) {
-				body.client_id = process.env.SPOTIFY_CLIENT_ID;
-				body.client_secret = process.env.SPOTIFY_CLIENT_SECRET;
-			}
 
 			const opts = {
 				method,
-				body: json ? JSON.stringify(body) : API.encodeJson(body),
+				data: json ? JSON.stringify(body) : API.encodeJson(body),
 				headers: {
 					'Content-Type': json
 						? 'application/json'
@@ -58,15 +58,19 @@ class API {
 				},
 			};
 
+			if (!json) {
+				opts.headers.Authorization = `Basic ${new Buffer.from(`${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`).toString('base64')}`;
+			}
+
 			if (json) {
 				opts.headers.Authorization = `Bearer ${token}`;
 			}
 
-			return API.request(endpoint, opts, callback);
+			return API.request(endpoint, opts);
 		};
 	}
 
-	static get(endpoint, token, callback) {
+	static get(endpoint, token) {
 		const opts = {
 			method: 'GET',
 			headers: {
@@ -74,49 +78,46 @@ class API {
 			},
 		};
 
-		return API.request(endpoint, opts, callback);
+		return API.request(endpoint, opts);
 	}
 
-	// { endpoint, token, body, callback, json = true }
-	static post(endpoint, token, body, callback) {
+	// { endpoint, token, body, json = true }
+	static post(endpoint, token, body) {
 		const postForm = API.withForm('POST');
 
 		return postForm({
 			endpoint,
 			token,
 			body,
-			callback,
 		});
 	}
 
-	static put(endpoint, token, body, callback) {
+	static put(endpoint, token, body) {
 		const putForm = API.withForm('PUT');
 
 		return putForm({
 			endpoint,
 			token,
 			body,
-			callback,
 		});
 	}
 
-	static authorize(code, callback) {
+	static authorize(code) {
 		const postForm = API.withForm('POST');
 		const body = {
 			grant_type: 'authorization_code',
-			code,
+			code: code,
 			redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
 		};
 
 		return postForm({
 			endpoint: 'https://accounts.spotify.com/api/token',
 			body,
-			callback,
 			json: false,
 		});
 	}
 
-	static refresh(refreshToken, callback) {
+	static refresh(refreshToken) {
 		const postForm = API.withForm('POST');
 		const body = {
 			grant_type: 'refresh_token',
@@ -126,7 +127,6 @@ class API {
 		return postForm({
 			endpoint: 'https://accounts.spotify.com/api/token',
 			body,
-			callback,
 			json: false,
 		});
 	}

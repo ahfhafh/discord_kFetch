@@ -1,49 +1,42 @@
 /* eslint-disable no-console */
 /* eslint-disable no-plusplus */
 // eslint-disable-next-line no-unused-vars
-const dotenv = require('dotenv').config();
+require('dotenv').config({ path: '../.env' });
 const express = require('express');
 const cors = require('cors');
 const API = require('../spotify/api');
-const Database = require('../db/database');
 const { URLSearchParams } = require('url');
 
 const app = express();
-const db = new Database();
-
-const jsonify = function jsonifyResponse(res) {
-	return res.json();
-};
 
 const authFlow = function authorizationFlow(code, res) {
-	const parseUser = async (payload) => {
-		const user = await jsonify(payload);
 
-		return user.id;
-	};
+	API.authorize(code).then((response) => {
+		API.get('me', response.data.access_token).then(async () => {
+			// await db.setUser(user);
+			// await db.setAccess(data.access_token);
+			// await db.setRefresh(data.refresh_token);
+			// const current = await db.getCurrent();
 
-	API.authorize(code, jsonify).then((data) => {
-		API.get('me', data.access_token, parseUser).then(async (user) => {
-			await db.setUser(user);
-			await db.setAccess(data.access_token);
-			await db.setRefresh(data.refresh_token);
-			const current = await db.getCurrent();
-
-			res.send(`Database updated for ${current.user}`);
+			res.send('OKK');
 		});
 	});
 };
 
 app.use(express.static(`${__dirname}/public`)).use(cors());
 
+
 app.get('/login', (_, res) => {
+	const state = process.env.SPOTIFY_STATE;
+	res.cookie('spotify_auth_state', state);
+
 	const query = {
 		response_type: 'code',
 		scope:
 			'playlist-modify-public playlist-read-collaborative playlist-read-private',
 		client_id: process.env.SPOTIFY_CLIENT_ID,
 		redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
-		state: process.env.SPOTIFY_STATE,
+		state: state,
 	};
 
 	res.redirect(
