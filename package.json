@@ -1,5 +1,5 @@
 {
-  "name": "discord_leaguebot",
+  "name": "discord_fetchbot",
   "version": "1.0.0",
   "description": "",
   "main": "main.js",
@@ -8,12 +8,9 @@
   },
   "author": "ahfhafh",
   "license": "ISC",
-  "type": "module",
+  "type": "commonjs",
   "dependencies": {
-    "@discordjs/builders": "^0.13.0",
-    "@discordjs/rest": "^0.4.1",
-    "discord-api-types": "^0.32.0",
-    "discord.js": "^13.6.0",
+    "discord.js": "^14.5.0",
     "dotenv": "^16.0.0"
   }
 }
