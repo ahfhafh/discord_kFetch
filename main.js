@@ -1,40 +1,52 @@
-import { Client, Intents } from 'discord.js';
-import 'dotenv/config';
+const fs = require('node:fs');
+const path = require('node:path');
+const { Client, Collection, GatewayIntentBits } = require('discord.js');
+require('dotenv').config();
 
-const leagueBot = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.DIRECT_MESSAGES, Intents.FLAGS.GUILD_INTEGRATIONS] });
+const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
-leagueBot.once('ready', () => {
-	leagueBot.user.setActivity('with ur mom', { type: 'PLAYING' });
+client.commands = new Collection();
+const commandsPath = path.join(__dirname, 'commands');
+const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+
+for (const file of commandFiles) {
+	const filePath = path.join(commandsPath, file);
+	const command = require(filePath);
+	// Set a new item in the Collection
+	// With the key as the command name and the value as the exported module
+	client.commands.set(command.data.name, command);
+}
+
+client.once('ready', () => {
+	client.user.setActivity('with ur feelings', { type: 'PLAYING' });
 	console.log('ready');
-
-	// const guild = leagueBot.guilds.cache.get(process.env.GUILD_ID);
-	// let commands;
-
-	// if (guild) {
-	// 	commands = guild.commands;
-	// } else {
-	// 	commands = leagueBot.application?.commands;
-	// }
-
-	// commands?.create({
-	// 	name: 'splock',
-	// 	description: 'Replay with pong.',
-	// });
 });
 
-leagueBot.on('interactionCreate', async (interaction) => {
-	console.log(interaction);
-	if (!interaction.isCommand()) return;
+client.on('interactionCreate', async (interaction) => {
+	if (!interaction.isChatInputCommand()) return;
 
-	const { commandName } = interaction;
+	const command = client.commands.get(interaction.commandName);
 
-	if (commandName === 'blo') {
-		await interaction.reply('Pong!');
-	} else if (commandName === 'server') {
-		await interaction.reply('Server info.');
-	} else if (commandName === 'user') {
-		await interaction.reply('User info.');
+	if (!command) return;
+
+	try {
+		await command.execute(interaction);
+	} catch (error) {
+		console.error(error);
+		await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
 	}
 });
 
-leagueBot.login(process.env.DISCORD_TOKEN);
+client.on('messageUpdate', (oldmsg, message) => {
+	if (message.author.id === '508759831755096074') {
+		if (message.embeds) {
+			const embed = message.embeds[0];
+			if (embed.description) {
+				console.log(embed);
+				return message.channel.send(embed.title);
+			}
+		}
+	}
+});
+
+client.login(process.env.DISCORD_TOKEN);
