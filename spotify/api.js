@@ -35,7 +35,7 @@ class API {
 			if (resp.status === 200 || resp.status === 201) {
 				return resp;
 			} else {
-				API.handleError(resp.status);
+				API.handleError('REQUEST ERROR: ' + resp.status);
 			}
 		}).catch(API.handleError);
 	}
@@ -70,12 +70,24 @@ class API {
 		};
 	}
 
-	static get(endpoint, token) {
+	// static get(endpoint, token) {
+	// 	const opts = {
+	// 		method: 'GET',
+	// 		headers: {
+	// 			'Authorization': `Bearer ${token}`,
+	// 		},
+	// 	};
+
+	// 	return API.request(endpoint, opts);
+	// }
+
+	static get(endpoint, params, token) {
 		const opts = {
 			method: 'GET',
 			headers: {
-				Authorization: `Bearer ${token}`,
+				'Authorization': `Bearer ${token}`,
 			},
+			params: params,
 		};
 
 		return API.request(endpoint, opts);
