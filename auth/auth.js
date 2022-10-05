@@ -6,17 +6,17 @@ const express = require('express');
 const cors = require('cors');
 const API = require('../spotify/api');
 const { URLSearchParams } = require('url');
+const Database = require('../db/database');
 
 const app = express();
+const db = new Database();
 
 const authFlow = function authorizationFlow(code, res) {
-
 	API.authorize(code).then((response) => {
-		API.get('me', response.data.access_token).then(async () => {
-			// await db.setUser(user);
-			// await db.setAccess(data.access_token);
-			// await db.setRefresh(data.refresh_token);
-			// const current = await db.getCurrent();
+		API.get('me', response.data.access_token).then(async (user) => {
+			await db.setUser(user.data.display_name);
+			await db.setAccess(response.data.access_token);
+			await db.setRefresh(response.data.refresh_token);
 
 			res.send('OKK');
 		});
@@ -33,7 +33,7 @@ app.get('/login', (_, res) => {
 	const query = {
 		response_type: 'code',
 		scope:
-			'playlist-modify-public playlist-read-collaborative playlist-read-private',
+			'playlist-modify-public playlist-modify-private',
 		client_id: process.env.SPOTIFY_CLIENT_ID,
 		redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
 		state: state,
