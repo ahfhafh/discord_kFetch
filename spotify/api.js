@@ -1,6 +1,3 @@
-/* eslint-disable no-param-reassign */
-/* eslint-disable arrow-body-style */
-// eslint-disable-next-line no-unused-vars
 require('dotenv').config({ path: '../.env' });
 const axios = require('axios');
 
@@ -69,17 +66,6 @@ class API {
 			return API.request(endpoint, opts);
 		};
 	}
-
-	// static get(endpoint, token) {
-	// 	const opts = {
-	// 		method: 'GET',
-	// 		headers: {
-	// 			'Authorization': `Bearer ${token}`,
-	// 		},
-	// 	};
-
-	// 	return API.request(endpoint, opts);
-	// }
 
 	static get(endpoint, params, token) {
 		const opts = {

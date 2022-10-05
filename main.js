@@ -2,6 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { Client, Collection, GatewayIntentBits } = require('discord.js');
 require('dotenv').config();
+const refresh = require('./spotify/refresh');
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent] });
 
@@ -31,3 +32,9 @@ for (const file of eventFiles) {
 }
 
 client.login(process.env.DISCORD_TOKEN);
+
+// eslint-disable-next-line no-unused-vars
+const _ = setInterval(() => {
+	refresh.refreshToken();
+	// 3590 seconds
+}, 3590000);
