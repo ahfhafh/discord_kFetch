@@ -32,10 +32,10 @@ class API {
 		}
 
 		return axios({ url: url, ...opts }).then(resp => {
-			if (resp.status === 200) {
+			if (resp.status === 200 || resp.status === 201) {
 				return resp;
 			} else {
-				console.log('Err: ' + resp.status);
+				API.handleError(resp.status);
 			}
 		}).catch(API.handleError);
 	}
