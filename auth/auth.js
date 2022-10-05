@@ -13,7 +13,7 @@ const db = new Database();
 
 const authFlow = function authorizationFlow(code, res) {
 	API.authorize(code).then((response) => {
-		API.get('me', response.data.access_token).then(async (user) => {
+		API.get('me', {}, response.data.access_token).then(async (user) => {
 			await db.setUser(user.data.display_name);
 			await db.setAccess(response.data.access_token);
 			await db.setRefresh(response.data.refresh_token);
