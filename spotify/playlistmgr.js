@@ -10,52 +10,14 @@ class PlaylistManager {
 		return res.json();
 	}
 
-	static parse(res) {
-		if (res.type === 'playlist') {
-			return {
-				id: res.id,
-				type: res.type,
-				name: res.name,
-				description: res.description,
-			};
-		}
-
-		return { error: res.error };
-	}
-
 	static extractID(url) {
 		const reg = new RegExp('(?<=(track|album)/)([^?]*)', 'gm');
 
 		return url.match(reg).pop();
 	}
 
-	static getSongURI(url) {
-		return [`spotify:track:${PlaylistManager.extractID(url)}`];
-	}
-
 	async getSongsFromURL(url) {
-		let songs;
-
-		if (url.includes('album')) {
-			songs = await this.getSongsFromAlbum(url);
-		} else {
-			songs = PlaylistManager.getSongURI(url);
-		}
-
-		return songs;
-	}
-
-	// get playlist
-	async updateCurrent(details) {
-		const current = await this.db.getCurrent();
-		const status = await API.put(
-			'playlists/4oHPOKpVc7xBHj3N2feyRF',
-			current.access_token,
-			details,
-			(res) => res.status,
-		);
-
-		return status;
+		return [`spotify:track:${PlaylistManager.extractID(url)}`];
 	}
 
 	// add items to playlist
@@ -71,10 +33,23 @@ class PlaylistManager {
 			endpoint,
 			current.access_token,
 			body,
-			PlaylistManager.jsonify,
 		);
 
 		return snapshot;
+	}
+
+	async getSongFromName(name) {
+		const current = await this.db.getCurrent();
+		const params = {
+			q: name,
+			type: 'track',
+			limit: 1,
+		};
+		const endpoint = 'search';
+
+		const snapshot = await API.get(endpoint, params, current.access_token);
+
+		return snapshot.data.tracks.items[0].external_urls.spotify;
 	}
 }
 
