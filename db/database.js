@@ -1,5 +1,3 @@
-/* eslint-disable function-paren-newline */
-/* eslint-disable implicit-arrow-linebreak */
 const sqlite3 = require('sqlite3').verbose();
 const Promise = require('promise');
 require('dotenv').config();
@@ -9,8 +7,6 @@ class Database {
 		this.db = new sqlite3.Database(`./db/${dbName}`, err => {
 			if (err) {
 				console.log(err);
-			} else {
-				console.log('connected to DB');
 			}
 		});
 	}

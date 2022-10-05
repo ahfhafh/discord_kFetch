@@ -1,6 +1,3 @@
-/* eslint-disable no-console */
-/* eslint-disable no-plusplus */
-// eslint-disable-next-line no-unused-vars
 require('dotenv').config({ path: '../.env' });
 const express = require('express');
 const cors = require('cors');
