@@ -1,15 +1,16 @@
 const { SlashCommandBuilder } = require('discord.js');
 const PlaylistManager = require('../spotify/playlistmgr');
 
-const addSong = async function addSongToPlaylist(url) {
+const addSong = async function addSongToPlaylist(name) {
 	const playlists = new PlaylistManager();
+	const url = await playlists.getSongFromName(name);
 	return await playlists.addToCurrent(url);
 };
 
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('addsong')
-		.setDescription('Add a song to spotfiy')
+		.setDescription('Add a song to spotify')
 		.addStringOption(option =>
 			option.setName('input')
 				.setDescription('input')
